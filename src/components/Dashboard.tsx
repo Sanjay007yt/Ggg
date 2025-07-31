@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, Mail, Calendar } from 'lucide-react';
+import { User, LogOut, Mail, Calendar, Edit3 } from 'lucide-react';
 import { authHelpers, supabase, Profile } from '../lib/supabase';
+import ProfileForm from './ProfileForm';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -9,6 +10,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -43,6 +45,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
     if (!error) {
       onLogout();
     }
+  };
+
+  const handleProfileUpdate = (updatedProfile: Profile) => {
+    setProfile(updatedProfile);
   };
 
   if (loading) {
@@ -83,52 +89,73 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout }) => {
 
           {/* Profile Information */}
           <div className="grid md:grid-cols-2 gap-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h2>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <User className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Full Name</p>
-                    <p className="font-medium text-gray-900">{profile?.full_name}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Mail className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Email Address</p>
-                    <p className="font-medium text-gray-900">{profile?.email}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <div>
-                    <p className="text-sm text-gray-500">Member Since</p>
-                    <p className="font-medium text-gray-900">
-                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                </div>
+            {isEditingProfile ? (
+              <div className="md:col-span-2">
+                <ProfileForm
+                  profile={profile!}
+                  onProfileUpdate={handleProfileUpdate}
+                  onCancel={() => setIsEditingProfile(false)}
+                />
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
+                    <button
+                      onClick={() => setIsEditingProfile(true)}
+                      className="flex items-center space-x-2 px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                      <span>Edit</span>
+                    </button>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <User className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Full Name</p>
+                        <p className="font-medium text-gray-900">{profile?.full_name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Mail className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Email Address</p>
+                        <p className="font-medium text-gray-900">{profile?.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <Calendar className="w-5 h-5 text-gray-400" />
+                      <div>
+                        <p className="text-sm text-gray-500">Member Since</p>
+                        <p className="font-medium text-gray-900">
+                          {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Status</h2>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <span className="text-green-700 font-medium">Account Active</span>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Status</h2>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                      <span className="text-green-700 font-medium">Account Active</span>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                      <span className="text-blue-700 font-medium">Email Verified</span>
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-gray-700 font-medium">Two-Factor Auth</span>
+                      <span className="text-sm text-gray-500">Not enabled</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <span className="text-blue-700 font-medium">Email Verified</span>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-700 font-medium">Two-Factor Auth</span>
-                  <span className="text-sm text-gray-500">Not enabled</span>
-                </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
 
           {/* Success Message */}
